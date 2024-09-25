@@ -61,6 +61,6 @@ function add_extra_product_for_taxonomy($cart_item_key, $product_id, $quantity, 
 
     // Añadir los productos extra al carrito
     foreach ($products_to_add as $extra_product_id) {
-        WC()->cart->add_to_cart($extra_product_id);
+        WC()->cart->add_to_cart($extra_product_id, $quantity);
     }
 }
