@@ -119,3 +119,116 @@ function update_extra_product_quantities($cart) {
     }
 }
 
+// Inyección de HTML en la descripción del producto
+add_action('woocommerce_single_product_summary', 'inject_custom_html_in_product_description', 25);
+
+function calculate_price_ecotasa($product, $taxonomy) {
+
+    $price = 0;
+    $base_price = $product->get_price();
+    switch ($taxonomy) {
+        case "vehiculo":
+            $ecotasa_vehiculo = 1.35;
+            $ecotasasiniva_vehiculo = ($base_price + $ecotasa_vehiculo);
+            $ecotasaeiva_vehiculo = ($base_price + $ecotasa_vehiculo) * 0.21;
+            $subpriceyoupay_vehiculo = $ecotasasiniva_vehiculo + $ecotasaeiva_vehiculo;
+            $price = number_format($subpriceyoupay_vehiculo, 2);
+            break;
+        case "carga":
+            $ecotasa_carga = 1.35;
+            $ecotasasiniva_carga = ($base_price + $ecotasa_carga);
+            $ecotasaeiva_carga = ($base_price + $ecotasa_carga) * 0.21;
+            $subpriceyoupay_carga = $ecotasasiniva_carga + $ecotasaeiva_carga;
+            $price = number_format($subpriceyoupay_carga, 2);
+            break;
+        case "moto":
+            $ecotasa_moto = 0.86;
+            $ecotasasiniva_moto = ($base_price + $ecotasa_moto);
+            $ecotasaeiva_moto = ($base_price + $ecotasa_moto) * 0.21;
+            $subpriceyoupay_moto = $ecotasasiniva_moto + $ecotasaeiva_moto;
+            $price = number_format($subpriceyoupay_moto, 2);
+            break;
+        case "comercial":
+            $ecotasa_comercial = 2.31;
+            $ecotasasiniva_comercial = ($base_price + $ecotasa_comercial);
+            $ecotasaeiva_comercial = ($base_price + $ecotasa_comercial) * 0.21;
+            $subpriceyoupay_comercial = $ecotasasiniva_comercial + $ecotasaeiva_comercial;
+            $price = number_format($subpriceyoupay_comercial, 2);
+            break;
+        case "todoterreno":
+            $ecotasa_todoterreno = 2.31;
+            $ecotasasiniva_todoterreno = ($base_price + $ecotasa_todoterreno);
+            $ecotasaeiva_todoterreno = ($base_price + $ecotasa_todoterreno) * 0.21;
+            $subpriceyoupay_todoterreno = $ecotasasiniva_todoterreno + $ecotasaeiva_todoterreno;
+            $price = number_format($subpriceyoupay_todoterreno, 2);
+            break;
+        case "camion":
+            $ecotasa_camion = 0;
+            $ecotasasiniva_camion = ($base_price + $ecotasa_camion);
+            $ecotasaeiva_camion = ($base_price + $ecotasa_camion) * 0.21;
+            $subpriceyoupay_camion = $ecotasasiniva_camion + $ecotasaeiva_camion;
+            $price = number_format($subpriceyoupay_camion, 2);
+            break;
+        case "turismo":
+            $ecotasa_turismo = 1.44;
+            $ecotasasiniva_turismo = ($base_price + $ecotasa_turismo);
+            $ecotasaeiva_turismo = ($base_price + $ecotasa_turismo) * 0.21;
+            $subpriceyoupay_turismo = $ecotasasiniva_turismo + $ecotasaeiva_turismo;
+            $price = number_format($subpriceyoupay_turismo, 2);
+            break;
+    }
+
+    return $price;
+}
+
+function get_product_price($product) {
+
+    $taxonomy_slug = 'neumatico-vehiculo';
+    $product_terms = wp_get_post_terms($product->get_id(), $taxonomy_slug);
+
+    if (is_wp_error($product_terms)) {
+        var_dump($product_terms);
+        return;
+    }
+
+    $price = 0;
+    foreach ($product_terms as $product_term) {
+        var_dump($product_term->slug);
+        $price = calculate_price_ecotasa($product, $product_term->slug);
+    }
+
+    return $price;
+}
+
+function inject_custom_html_in_product_description() {
+    global $product;
+
+    // Solo inyectar si es un producto válido
+    if (!$product || !is_a($product, 'WC_Product')) {
+        return;
+    }
+
+    // Obtener el precio del producto y otros valores necesarios
+   $product_price = get_product_price($product);
+   $unit_price = "€". $product_price;
+
+    echo '
+    <dl class="tm-extra-product-options-totals tm-custom-price-totals">
+        <dt class="tm-unit-price">Precio unidad (inc. ecotasa)</dt>
+        <dd class="tm-unit-price">
+            <span class="price amount options">' . $unit_price . '</span>
+        </dd>
+        <dt class="tm-options-totals">Total Ecotasa (por cantidad de productos)</dt>
+        
+        <dt class="tm-final-totals">Total (por cantidad, inc. ecotasa)</dt>
+        <dd class="tm-final-totals">
+            <span class="price amount final"><span class="woocommerce-Price-amount amount"><bdi>' . $total_price . '</bdi></span></span>
+        </dd>
+    </dl>';
+}
+
+
+
+
+
+
